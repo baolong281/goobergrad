@@ -1,1 +1,3 @@
-# fortnitegrad
+# goobergrad
+
+for goobers and goofballs
