@@ -1,3 +1,3 @@
 # goobergrad
 
-for goobers and goofballs
+fake micrograd
