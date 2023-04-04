@@ -64,6 +64,16 @@ class Value:
 						
 		result._backward = _backward
 		return result
+
+	def log(self):
+		result = Value(math.log10(self.data), (self, ), 'log')
+		ln10 = 2.30258509299
+
+		def _backward():
+				self.grad += (1 / (self.data * ln10)) * result.grad
+		result._backward = _backward
+
+		return result 
 	
 	def tanh(self):
 		x = self.data
@@ -125,23 +135,24 @@ class Value:
 			
 class Neuron:
 	
-	def __init__(self, nin): #num inputs
+	def __init__(self, nin, _activation): #num inputs
 		std = math.sqrt(2/nin)
 		self.w = [random.uniform(-1, 1) * std for _ in range(nin)]
 		self.b = Value(math.sqrt(2 / nin) * random.uniform(-1, 1))
+		self._activation = _activation
 		
 	def __call__(self, x):
 		act = sum((wi * wx for wi, wx in zip(self.w, x)), self.b)
-		result = act.relu()
-		return result
+		return act.relu() if self._activation else act 
 	
 	def parameters(self):
 		return [self.b] + self.w
 	
 class Layer:
 	
-	def __init__(self, nin, nout):
-		self.neurons = [Neuron(nin) for _ in range(nout)]
+	def __init__(self, nin, nout, _activation):
+		self._activation = _activation 
+		self.neurons = [Neuron(nin, True) if self._activation else Neuron(nin, False) for _ in range(nout)]
 	
 	def __call__(self, x):
 		outputs = [n(x) for n in self.neurons]
@@ -156,7 +167,7 @@ class MLP:
 	def __init__(self, _layers):
 		assert all(isinstance(item, int) for item in _layers)
 		self._nin = _layers[0]
-		self.layers = [Layer(_layers[i], _layers[i+1]) for i in range(len(_layers)-1)]
+		self.layers = [Layer(_layers[i], _layers[i+1], True) if i+1<len(_layers)-1 else Layer(_layers[i], _layers[i+1], False) for i in range(len(_layers)-1)]
 	
 	def __call__(self, x):
 		assert len(x) == self._nin
