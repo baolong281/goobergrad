@@ -82,7 +82,7 @@ class Value:
 		result = Value(x, (self, ), 'relu')
 		
 		def _backward():
-			self.grad += result.grad if x > 0 else 0
+			self.grad += (result.grad > 0) * result.grad
 		result._backward = _backward
 		
 		return result
@@ -126,12 +126,13 @@ class Value:
 class Neuron:
 	
 	def __init__(self, nin): #num inputs
-		self.w = [Value(random.uniform(-1, 1), label='w') for _ in range(nin)]
-		self.b = Value(random.uniform(-1, 1), label='b')
+		std = math.sqrt(2/nin)
+		self.w = [random.uniform(-1, 1) * std for _ in range(nin)]
+		self.b = Value(math.sqrt(2 / nin) * random.uniform(-1, 1))
 		
 	def __call__(self, x):
 		act = sum((wi * wx for wi, wx in zip(self.w, x)), self.b)
-		result = act.tanh()
+		result = act.relu()
 		return result
 	
 	def parameters(self):
@@ -154,10 +155,11 @@ class MLP:
 	
 	def __init__(self, _layers):
 		assert all(isinstance(item, int) for item in _layers)
+		self._nin = _layers[0]
 		self.layers = [Layer(_layers[i], _layers[i+1]) for i in range(len(_layers)-1)]
 	
 	def __call__(self, x):
-		assert len(x) == len(self.layers)
+		assert len(x) == self._nin
 		output = x
 		
 		for layer in self.layers:
