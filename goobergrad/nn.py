@@ -112,7 +112,6 @@ class Value:
 		
 		def _backward():
 			self.grad += (result.data * (1-result.data)) * result.grad
-			print(self.grad)
 		result._backward = _backward
 		
 		return result
@@ -138,7 +137,7 @@ class Neuron:
 	
 	def __init__(self, nin, _activation): #num inputs
 		std = math.sqrt(2/nin)
-		self.w = [random.uniform(-1, 1) * std for _ in range(nin)]
+		self.w = [Value(random.uniform(-1, 1) * std) for _ in range(nin)]
 		self.b = Value(math.sqrt(2 / nin) * random.uniform(-1, 1))
 		self._activation = _activation
 		
