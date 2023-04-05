@@ -111,7 +111,8 @@ class Value:
 		result = Value(math.exp(self.data) / denom, (self, ), 'softmax')
 		
 		def _backward():
-			self.grad += result.data * (1-result.data)
+			self.grad += (result.data * (1-result.data)) * result.grad
+			print(self.grad)
 		result._backward = _backward
 		
 		return result
