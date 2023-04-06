@@ -7,12 +7,11 @@ def RMSE(ypred, ytrue):
 
 def CrossEntropy(ypred, ytrue):
 
-	result = Value(-sum((yt * math.log10(yp.data)) for yp, yt in zip(ypred, ytrue)), (ypred), _op='CrossEntropy')
-	ln10 = 2.30258509299
+	result = Value(-sum((yt * math.log(yp.data)) for yp, yt in zip(ypred, ytrue)), (ypred), _op='CrossEntropy')
 
 	def _backward():
-		for node in ypred:
-			node.grad += -(-1 / (node.data * ln10)) * result.grad
+		for node, label in zip(ypred, ytrue):
+			node.grad += -(label / node.data) * result.grad
 
 	result._backward = _backward
             

@@ -99,7 +99,7 @@ class Value:
 
 	def leaky_relu(self):
 
-		c = .05
+		c = .01
 		x = c * self.data if self. data < 0 else self.data
 		result = Value(x, (self, ), 'leaky_relu')
 
@@ -120,6 +120,9 @@ class Value:
 		return result
 	
 	def _softmax(self, denom):
+
+
+
 		result = Value(math.exp(self.data) / denom, (self, ), 'softmax')
 		
 		def _backward():
