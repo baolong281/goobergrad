@@ -37,7 +37,7 @@ class Value:
 	def __mul__(self, other):
 		other = other if isinstance(other, Value) else Value(other)
 		result = Value(self.data * other.data, (self, other), _op="*")
-		
+
 		def _backward():
 			self.grad += other.data * result.grad
 			other.grad += self.data * result.grad
@@ -96,6 +96,18 @@ class Value:
 		result._backward = _backward
 		
 		return result
+
+	def leaky_relu(self):
+
+		c = .05
+		x = c * self.data if self. data < 0 else self.data
+		result = Value(x, (self, ), 'leaky_relu')
+
+		def _backward():
+			self.grad += 1 * result.grad if self.data>0 else c * result.grad
+		result._backward = _backward
+
+		return result
 	
 	def exp(self):
 		x = self.data
@@ -143,7 +155,7 @@ class Neuron:
 		
 	def __call__(self, x):
 		act = sum((wi * wx for wi, wx in zip(self.w, x)), self.b)
-		return act.relu() if self._activation else act 
+		return act.leaky_relu() if self._activation else act 
 	
 	def parameters(self):
 		return [self.b] + self.w
