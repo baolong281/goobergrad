@@ -1,3 +1,3 @@
 # goobergrad
 
-fake micrograd
+experiments in fake micrograd
