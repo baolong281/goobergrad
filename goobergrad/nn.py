@@ -13,7 +13,13 @@ class Value:
 	
 	def __repr__(self):
 		return f"Value({self.data})"
+
+	def __ge__(self, other):
+		return self.data >= other.data
 	
+	def __gt__(self, other):
+		return self.data > other.data
+
 	def __rmul__(self, other):
 		return self * other
 	
@@ -131,7 +137,7 @@ class Value:
 		
 		return result
 	
-	def backward(self):
+	def backward(self, clipping):
 		
 		topo = []
 		visited = set()
@@ -147,10 +153,14 @@ class Value:
 		self.grad = 1.0
 		for node in reversed(topo):
 			node._backward()
+			if node.grad > clipping:
+				node.grad = clipping
+			elif node.grad < -clipping:
+				node.grad = -clipping
 			
 class Neuron:
 	
-	def __init__(self, nin, _activation): #num inputs
+	def __init__(self, nin, _activation ): #num inputs
 		std = math.sqrt(2/nin)
 		self.w = [Value(random.uniform(-1, 1) * std) for _ in range(nin)]
 		self.b = Value(math.sqrt(2 / nin) * random.uniform(-1, 1))
@@ -182,7 +192,7 @@ class MLP:
 	def __init__(self, _layers):
 		assert all(isinstance(item, int) for item in _layers)
 		self._nin = _layers[0]
-		self.layers = [Layer(_layers[i], _layers[i+1], True) if i+1<len(_layers)-1 else Layer(_layers[i], _layers[i+1], False) for i in range(len(_layers)-1)]
+		self.layers = [Layer(_layers[i], _layers[i+1], True) if i+1<len(_layers)-1 else Layer(_layers[i], _layers[i+1], False ) for i in range(len(_layers)-1)]
 	
 	def __call__(self, x):
 		assert len(x) == self._nin
@@ -201,10 +211,18 @@ class MLP:
 		for p in self.parameters():
 			p.grad = 0
 			
-	def step(self, learning_rate):
+	def step(self, learning_rate, minimize): # minimize boolean 
 		
 		for p in self.parameters():
-			p.data += -p.grad * learning_rate
+
+			"""
+			if p.grad >= self.grad_max:
+				p.grad = self.grad_max
+			elif p.grad <= -self.grad_max:
+				p.grad = -self.grad_max
+			"""
+
+			p.data += p.grad * learning_rate if minimize else -p.grad * learning_rate
 			
 def softmax(values):
 	
